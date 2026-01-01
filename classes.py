@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 import string
+import requests
+from collections import Counter
 
 @dataclass
 class TextParser:
@@ -20,6 +22,7 @@ class TextParser:
     
     def to_list(self) -> list:
         self.text = self.text.split()
+        return self.text
 
     def remove_stopwords(self, stopwords: set) -> list:
         self.text = [word for word in self.text if word not in stopwords]
@@ -32,3 +35,25 @@ class TextParser:
         self.to_list()
         self.remove_stopwords(set(stopwords))
         return self.text
+
+
+@dataclass
+class MeshDescriptor:
+    tokens: list
+    
+    def __post_init__(self):
+        if not isinstance(self.tokens, list):
+            raise ValueError("Tokens must be provided as a list")
+    
+    def get_descriptors(self) -> list:
+        url = "https://id.nlm.nih.gov/mesh/lookup/descriptor?label={}&match=contains&year=current&limit=10"
+        descriptors = []
+        for token in self.tokens:
+            response = requests.get(url.format(token))
+            if response.status_code == 200:
+                data = response.json()
+                descriptors.extend([item['label'] for item in data])
+        return descriptors
+    
+    def get_most_common_descriptors(self) -> dict:
+        return Counter(self.get_descriptors()).most_common(10)
