@@ -38,12 +38,13 @@ class TextParser:
         self.text = [word for word in self.text if word not in stopwords]
         return self.text
 
-    def tokenize(self) -> str:
+    def tokenize(self) -> list:
         stopwords = open("english").read().splitlines()
         self.eliminate_punctuation()
         self.to_lowercase()
         self.to_list()
         self.remove_stopwords(set(stopwords))
+        self.text = list(set(self.text))
         return self.text
 
 
