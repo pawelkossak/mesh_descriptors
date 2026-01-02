@@ -5,12 +5,22 @@ from collections import Counter
 
 @dataclass
 class TextParser:
-    text: str
+    _text: str | list
 
     def __post_init__(self):
-        if not isinstance(self.text, str):
-            raise ValueError("Text must be a string")
+        if not isinstance(self.text, str) and not isinstance(self.text, list):
+            raise ValueError("Text must be a string or list")
         
+    @property
+    def text(self) -> str:
+        return self._text
+    
+    @text.setter
+    def text(self, value: str | list):
+        if not isinstance(value, str) and not isinstance(value, list):
+            raise ValueError("Text must be a string or list")
+        self._text = value
+
     def eliminate_punctuation(self) -> str:
         for i in string.punctuation:
             self.text = self.text.replace(i, " ")
@@ -39,14 +49,24 @@ class TextParser:
 
 @dataclass
 class MeshDescriptor:
-    tokens: list
+    _tokens: list
     
     def __post_init__(self):
         if not isinstance(self.tokens, list):
             raise ValueError("Tokens must be provided as a list")
     
+    @property
+    def tokens(self) -> list:
+        return self._tokens
+    
+    @tokens.setter
+    def tokens(self, value: list):
+        if not isinstance(value, list):
+            raise ValueError("Tokens must be provided as a list")
+        self._tokens = value
+
     def get_descriptors(self) -> list:
-        url = "https://id.nlm.nih.gov/mesh/lookup/descriptor?label={}&match=contains&year=current&limit=10"
+        url = "https://id.nlm.nih.gov/mesh/lookup/descriptor?label={}&match=contains&year=current&limit=3"
         descriptors = []
         for token in self.tokens:
             response = requests.get(url.format(token))
