@@ -78,3 +78,18 @@ class MeshDescriptor:
     
     def get_most_common_descriptors(self) -> dict:
         return Counter(self.get_descriptors()).most_common(10)
+    
+
+@dataclass
+class MeshSession:
+    _text: str
+
+    @property
+    def text(self) -> str:
+        return self._text
+    
+    def get_descriptors(self) -> list:
+        parser = TextParser(self.text)
+        tokens = parser.tokenize()
+        mesh = MeshDescriptor(tokens)
+        return mesh.get_most_common_descriptors()
