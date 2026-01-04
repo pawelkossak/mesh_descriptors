@@ -15,6 +15,7 @@ class MeshDescriptorsWindow(QMainWindow):
         self._descriptors = []
         self._config = json.load(open("config.json"))
         self._searchText = ""
+        self.session = MeshSession("")
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.searchButton.clicked.connect(self._handleSearchClicked)
@@ -45,9 +46,11 @@ class MeshDescriptorsWindow(QMainWindow):
         self.ui.statusbar.showMessage("Searching for descriptors...")
         sleep(0.1)
         self.searchText = self.ui.medicalText.text()
-        session = MeshSession(self.ui.medicalText.text())
-        self.descriptors = session.get_descriptors()
+        self.session.text = self.searchText
+        #session = MeshSession(self.ui.medicalText.text())
+        self.descriptors = self.session.get_descriptors()
         if len(self.descriptors) == 0:
+            self.ui.resultTable.setRowCount(0)
             self.ui.statusbar.showMessage("No descriptors found")
         else:
             self.ui.resultTable.setRowCount(len(self.descriptors))
@@ -60,21 +63,23 @@ class MeshDescriptorsWindow(QMainWindow):
     
     def _handleSaveClicked(self):
         self.ui.statusbar.showMessage("Saving descriptors...")
-        if self.descriptors:
-            file_folder = self.config["text_file_save_path"]
-            if not file_folder.endswith('/'):
-                file_folder += '/'
-            if not os.path.exists(file_folder):
-                os.makedirs(file_folder)
-            file_name = f"mesh_descriptors{datetime.datetime.now().strftime("%d%m%Y%H%M%S")}.txt"
-            file_path = os.path.join(file_folder, file_name)
-            with open(file_path, "w") as f:
-                f.write(f"Medical Text: {self.searchText}\n\nMost common MeSH Descriptors found:\n")
-                for descriptor, count in self.descriptors:
-                    f.write(f"{descriptor} - {count}\n")
-            self.ui.statusbar.showMessage(f"Descriptors saved successfully as {file_name}")
-        else:
-            self.ui.statusbar.showMessage("No descriptors to save")
+        message = self.session.save_descriptors_to_txt(self.searchText)
+        self.ui.statusbar.showMessage(message)
+        # if self.descriptors:
+        #     file_folder = self.config["text_file_save_path"]
+        #     if not file_folder.endswith('/'):
+        #         file_folder += '/'
+        #     if not os.path.exists(file_folder):
+        #         os.makedirs(file_folder)
+        #     file_name = f"mesh_descriptors{datetime.datetime.now().strftime("%d%m%Y%H%M%S")}.txt"
+        #     file_path = os.path.join(file_folder, file_name)
+        #     with open(file_path, "w") as f:
+        #         f.write(f"Medical Text: {self.searchText}\n\nMost common MeSH Descriptors found:\n")
+        #         for descriptor, count in self.descriptors:
+        #             f.write(f"{descriptor} - {count}\n")
+        #     self.ui.statusbar.showMessage(f"Descriptors saved successfully as {file_name}")
+        # else:
+        #     self.ui.statusbar.showMessage("No descriptors to save")
 
     
     def _handleGenerateChartClicked(self):

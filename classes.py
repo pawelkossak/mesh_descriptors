@@ -2,6 +2,9 @@ from dataclasses import dataclass
 import string
 import requests
 from collections import Counter
+import json
+import datetime
+import os
 
 @dataclass
 class TextParser:
@@ -84,12 +87,44 @@ class MeshDescriptor:
 class MeshSession:
     _text: str
 
+    def __post_init__(self):
+        self._descriptors = []
+
     @property
     def text(self) -> str:
         return self._text
+    
+    @text.setter
+    def text(self, value: str):
+        self._text = value
+    
+    @property
+    def descriptors(self) -> list:
+        return self._descriptors
+    
+    @descriptors.setter
+    def descriptors(self, value: list):
+        self._descriptors = value
     
     def get_descriptors(self) -> list:
         parser = TextParser(self.text)
         tokens = parser.tokenize()
         mesh = MeshDescriptor(tokens)
-        return mesh.get_most_common_descriptors()
+        self.descriptors = mesh.get_most_common_descriptors()
+        return self.descriptors
+    
+    def save_descriptors_to_txt(self, searchText) -> str:
+        if not self.descriptors:
+            return "First retrieve descriptors before saving."
+        folder = json.load(open("config.json"))["text_file_save_path"]
+        if not folder.endswith('/'):
+            folder += '/'
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        filename = f"mesh_descriptors_{datetime.datetime.now().strftime('%d%M%Y%H%M%S')}.txt"
+        path = folder + filename
+        with open(path, 'w') as f:
+            f.write(f"Medical Text: {searchText}\n\nMost common MeSH Descriptors found:\n")
+            for descriptor, count in self.descriptors:
+                f.write(f"{descriptor} - {count}\n")
+        return f"Descriptors saved successfully as {filename}"
