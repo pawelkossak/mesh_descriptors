@@ -5,6 +5,9 @@ from collections import Counter
 import json
 import datetime
 import os
+import matplotlib.pyplot as plt
+from matplotlib import ticker
+
 
 @dataclass
 class TextParser:
@@ -13,11 +16,11 @@ class TextParser:
     def __post_init__(self):
         if not isinstance(self.text, str) and not isinstance(self.text, list):
             raise ValueError("Text must be a string or list")
-        
+
     @property
     def text(self) -> str:
         return self._text
-    
+
     @text.setter
     def text(self, value: str | list):
         if not isinstance(value, str) and not isinstance(value, list):
@@ -28,11 +31,11 @@ class TextParser:
         for i in string.punctuation:
             self.text = self.text.replace(i, " ")
         return self.text
-    
+
     def to_lowercase(self) -> str:
         self.text = self.text.lower()
         return self.text
-    
+
     def to_list(self) -> list:
         self.text = self.text.split()
         return self.text
@@ -54,15 +57,15 @@ class TextParser:
 @dataclass
 class MeshDescriptor:
     _tokens: list
-    
+
     def __post_init__(self):
         if not isinstance(self.tokens, list):
             raise ValueError("Tokens must be provided as a list")
-    
+
     @property
     def tokens(self) -> list:
         return self._tokens
-    
+
     @tokens.setter
     def tokens(self, value: list):
         if not isinstance(value, list):
@@ -78,10 +81,10 @@ class MeshDescriptor:
                 data = response.json()
                 descriptors.extend([item['label'] for item in data])
         return descriptors
-    
+
     def get_most_common_descriptors(self) -> dict:
         return Counter(self.get_descriptors()).most_common(10)
-    
+
 
 @dataclass
 class MeshSession:
@@ -89,34 +92,39 @@ class MeshSession:
 
     def __post_init__(self):
         self._descriptors = []
+        self._config = json.load(open("config.json"))
 
     @property
     def text(self) -> str:
         return self._text
-    
+
     @text.setter
     def text(self, value: str):
         self._text = value
-    
+
     @property
     def descriptors(self) -> list:
         return self._descriptors
-    
+
     @descriptors.setter
     def descriptors(self, value: list):
         self._descriptors = value
-    
+
+    @property
+    def config(self) -> dict:
+        return self._config
+
     def get_descriptors(self) -> list:
         parser = TextParser(self.text)
         tokens = parser.tokenize()
         mesh = MeshDescriptor(tokens)
         self.descriptors = mesh.get_most_common_descriptors()
         return self.descriptors
-    
-    def save_descriptors_to_txt(self, searchText) -> str:
+
+    def save_descriptors_to_txt(self) -> str:
         if not self.descriptors:
             return "First retrieve descriptors before saving."
-        folder = json.load(open("config.json"))["text_file_save_path"]
+        folder = self.config["text_file_save_path"]
         if not folder.endswith('/'):
             folder += '/'
         if not os.path.exists(folder):
@@ -124,7 +132,30 @@ class MeshSession:
         filename = f"mesh_descriptors_{datetime.datetime.now().strftime('%d%M%Y%H%M%S')}.txt"
         path = folder + filename
         with open(path, 'w') as f:
-            f.write(f"Medical Text: {searchText}\n\nMost common MeSH Descriptors found:\n")
+            f.write(f"Medical Text: {self.text}\n\nMost common MeSH Descriptors found:\n")
             for descriptor, count in self.descriptors:
                 f.write(f"{descriptor} - {count}\n")
         return f"Descriptors saved successfully as {filename}"
+
+    def generate_and_save_chart(self) -> str:
+        if not self.descriptors:
+            return "First retrieve descriptors before saving."
+        fig, ax = plt.subplots()
+        descriptors, counts = zip(*self.descriptors)
+        ax.bar(descriptors, counts)
+        ax.set_ylabel("Count")
+        ax.set_title("MeSH Descriptors Frequency")
+        ax.set_yticks(range(0, max(counts)+1))
+        ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+        plt.xticks(rotation=45, ha='right')
+
+        folder = self.config["chart_save_path"]
+        if not folder.endswith('/'):
+            folder += '/'
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        filename = f"chart_{datetime.datetime.now().strftime('%d%M%Y%H%M%S')}.png"
+        path = folder + filename
+        plt.tight_layout()
+        plt.savefig(path, format="png")
+        return f"Chart saved successfully as {filename}"
