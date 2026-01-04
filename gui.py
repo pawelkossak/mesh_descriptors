@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QMainWindow, QApplication, QTableWidgetItem
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 from ui_interface import Ui_MainWindow
 from classes import MeshSession
 import sys
@@ -13,6 +14,7 @@ class MeshDescriptorsWindow(QMainWindow):
         super().__init__(parent)
         self._descriptors = []
         self._config = json.load(open("config.json"))
+        self._searchText = ""
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         self.ui.searchButton.clicked.connect(self._handleSearchClicked)
@@ -30,9 +32,19 @@ class MeshDescriptorsWindow(QMainWindow):
     @property
     def config(self) -> dict:
         return self._config
+    
+    @property
+    def searchText(self) -> str:
+        return self._searchText
+    
+    @searchText.setter
+    def searchText(self, value: str):
+        self._searchText = value
 
     def _handleSearchClicked(self):
         self.ui.statusbar.showMessage("Searching for descriptors...")
+        sleep(0.1)
+        self.searchText = self.ui.medicalText.text()
         session = MeshSession(self.ui.medicalText.text())
         self.descriptors = session.get_descriptors()
         if len(self.descriptors) == 0:
@@ -54,10 +66,12 @@ class MeshDescriptorsWindow(QMainWindow):
                 file_folder += '/'
             if not os.path.exists(file_folder):
                 os.makedirs(file_folder)
-            file_name = f"{file_folder}mesh_descriptors{datetime.datetime.now().strftime("%d%m%Y%H%M%S")}.txt"
-            with open(file_name, "w") as f:
+            file_name = f"mesh_descriptors{datetime.datetime.now().strftime("%d%m%Y%H%M%S")}.txt"
+            file_path = os.path.join(file_folder, file_name)
+            with open(file_path, "w") as f:
+                f.write(f"Medical Text: {self.searchText}\n\nMost common MeSH Descriptors found:\n")
                 for descriptor, count in self.descriptors:
-                    f.write(f"{descriptor}: {count}\n")
+                    f.write(f"{descriptor} - {count}\n")
             self.ui.statusbar.showMessage(f"Descriptors saved successfully as {file_name}")
         else:
             self.ui.statusbar.showMessage("No descriptors to save")
@@ -71,17 +85,19 @@ class MeshDescriptorsWindow(QMainWindow):
             ax.bar(descriptors, counts)
             ax.set_ylabel("Count")
             ax.set_title("MeSH Descriptors Frequency")
+            ax.set_yticks(range(0, max(counts)+1))
+            ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
             plt.xticks(rotation=45, ha='right')
             chart_folder = self.config["chart_save_path"]
             if not chart_folder.endswith('/'):
                 chart_folder += '/'
             if not os.path.exists(chart_folder):
                 os.makedirs(chart_folder)
-            chart_file = f"mesh_descriptors_chart{datetime.datetime.now().strftime('%d%m%Y%H%M%S')}.png"
-            chart_path = os.path.join(chart_folder, chart_file)
+            chart_file_name = f"mesh_descriptors_chart{datetime.datetime.now().strftime('%d%m%Y%H%M%S')}.png"
+            chart_path = os.path.join(chart_folder, chart_file_name)
             plt.savefig(chart_path, format='png')
             sleep(0.1)
-            self.ui.statusbar.showMessage(f"Chart saved successfully as {chart_file}")
+            self.ui.statusbar.showMessage(f"Chart saved successfully as {chart_file_name}")
             plt.show()
 
 
