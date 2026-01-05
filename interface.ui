@@ -152,7 +152,7 @@
       <item>
        <widget class="QPushButton" name="chartButton">
         <property name="text">
-         <string>Generate chart</string>
+         <string>Generate bar chart</string>
         </property>
        </widget>
       </item>

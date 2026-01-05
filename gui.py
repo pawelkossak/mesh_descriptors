@@ -42,6 +42,9 @@ class MeshDescriptorsWindow(QMainWindow):
         if len(self.descriptors) == 0:
             self.ui.resultTable.setRowCount(0)
             self.ui.statusbar.showMessage("No descriptors found")
+        elif self.descriptors[0][0] == "error":
+            self.ui.resultTable.setRowCount(0)
+            self.ui.statusbar.showMessage("Error occured while connecting to MeSH API, check your internet connection.")
         else:
             self.ui.resultTable.setRowCount(len(self.descriptors))
             row = 0

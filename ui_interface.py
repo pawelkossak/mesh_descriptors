@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'interfaceoUYqRP.ui'
+## Form generated from reading UI file 'interfaceLnAJwX.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.10.1
 ##
@@ -129,6 +129,6 @@ class Ui_MainWindow(object):
         self.medicalText.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Write medical text here...", None))
         self.searchButton.setText(QCoreApplication.translate("MainWindow", u"Search for descriptors", None))
         self.saveButton.setText(QCoreApplication.translate("MainWindow", u"Save results to text file", None))
-        self.chartButton.setText(QCoreApplication.translate("MainWindow", u"Generate chart", None))
+        self.chartButton.setText(QCoreApplication.translate("MainWindow", u"Generate bar chart", None))
     # retranslateUi
 

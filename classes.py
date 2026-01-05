@@ -76,14 +76,22 @@ class MeshDescriptor:
         url = "https://id.nlm.nih.gov/mesh/lookup/descriptor?label={}&match=contains&year=current&limit=3"
         descriptors = []
         for token, count in self.tokens.items():
-            response = requests.get(url.format(token))
-            if response.status_code == 200:
-                data = response.json()
-                descriptors.extend([item['label'] for item in data]*count)
+            try:
+                response = requests.get(url.format(token))
+                if response.status_code == 200:
+                    data = response.json()
+                    descriptors.extend([item['label'] for item in data]*count)
+            except Exception as e:
+                return [("error", e)]
         return descriptors
-
+    
     def get_most_common_descriptors(self) -> list:
-        return Counter(self.get_descriptors()).most_common(10)
+        descriptors = self.get_descriptors()
+        if not descriptors:
+            return []
+        if descriptors[0][0] == "error":
+            return descriptors
+        return Counter(descriptors).most_common(10)
 
 
 @dataclass
