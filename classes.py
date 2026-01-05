@@ -44,45 +44,45 @@ class TextParser:
         self.text = [word for word in self.text if word not in stopwords]
         return self.text
 
-    def tokenize(self) -> list:
+    def tokenize(self) -> dict:
         stopwords = open("english").read().splitlines()
         self.eliminate_punctuation()
         self.to_lowercase()
         self.to_list()
         self.remove_stopwords(set(stopwords))
-        self.text = list(set(self.text))
-        return self.text
+        # self.text = list(set(self.text))
+        return Counter(self.text)
 
 
 @dataclass
 class MeshDescriptor:
-    _tokens: list
+    _tokens: dict
 
     def __post_init__(self):
-        if not isinstance(self.tokens, list):
-            raise ValueError("Tokens must be provided as a list")
+        if not isinstance(self.tokens, dict):
+            raise ValueError("Tokens must be provided as a dictionary")
 
     @property
-    def tokens(self) -> list:
+    def tokens(self) -> dict:
         return self._tokens
 
     @tokens.setter
-    def tokens(self, value: list):
-        if not isinstance(value, list):
+    def tokens(self, value: dict):
+        if not isinstance(value, dict):
             raise ValueError("Tokens must be provided as a list")
         self._tokens = value
 
     def get_descriptors(self) -> list:
         url = "https://id.nlm.nih.gov/mesh/lookup/descriptor?label={}&match=contains&year=current&limit=3"
         descriptors = []
-        for token in self.tokens:
+        for token, count in self.tokens.items():
             response = requests.get(url.format(token))
             if response.status_code == 200:
                 data = response.json()
-                descriptors.extend([item['label'] for item in data])
+                descriptors.extend([item['label'] for item in data]*count)
         return descriptors
 
-    def get_most_common_descriptors(self) -> dict:
+    def get_most_common_descriptors(self) -> list:
         return Counter(self.get_descriptors()).most_common(10)
 
 
