@@ -1,30 +1,31 @@
+# Mesh Descriptors - Medical Text Analysis Tool
+Author: Paweł Kossakowski
 # Table of Contents
-[Table of Contents](#table-of-contents)
-  1. [Cel i opis projektu](#1-cel-i-opis-projektu)
-  2. [Opis klas](#2-architektura-programu-i-opis-klas)
-  3. [Instrukcja użytkowania](#3-instrukcja-użytkowania)
-  4. [Refleksje](#4-refleksje)
+  1. [Project goal and description](#1-project-goal-and-description)
+  2. [Program architecture and class description](#2-program-architecture-and-class-description)
+  3. [User manual](#3-user-manual)
+  4. [Reflections](#4-reflections)
 
-## 1. Cel i opis projektu
-Celem projektu jest stworzenie narzędzia wspomagającego analizę tekstów medycznych pod kątem wyszukiwania ontologii zgodnej ze standardem [MeSH (Medical Subject Headings)](https://en.wikipedia.org/wiki/Medical_Subject_Headings). Projekt umożliwia użytkownikowi wprowadzenie dowolnego tekstu medycznego, z którego ekstraktuje słowa kluczowe (tokeny). Następnie aplikacja komunikuje się z [API National Library of Medicine (NLM)](https://id.nlm.nih.gov/mesh/swagger/ui), aby dopasować te słowa do deskryptorów medycznych.
+## 1. Project goal and description
+The goal of the project is to create a tool supporting the analysis of medical texts in terms of searching for ontologies compliant with the [MeSH (Medical Subject Headings)](https://en.wikipedia.org/wiki/Medical_Subject_Headings)standard. The project allows the user to input any medical text, from which it extracts keywords (tokens). The application then communicates with the [API National Library of Medicine (NLM)](https://id.nlm.nih.gov/mesh/swagger/ui) to match these words with medical descriptors.
 
-Projekt oferuje interface'y: graficzny (oparty na bibliotece PySide6) oraz tekstowy. Wyniki analizy mogą być eksportowane do plików tekstowych bądź do pliku graficznego w formie wykresu słupkowego.
+The project offers both graphical (based on the PySide6 library) and text-based interfaces. Analysis results can be exported to text files or to an image file in the form of a bar chart.
 
-## 2. Architektura programu i opis klas
-Struktura programu opiera się na klasach:
-* ```TextParser```: Klasa odpowiedzialna za przeróbkę tekstu wejściowego na tzw. tokeny - usuwanięcie interpunkcji, zmiany liter na małe, usunięcie słów "pustych" i rozbicie na "tokeny", czyli słowa kluczowe.
-* ```MeshDescriptor```: Klasa służąca do komunikacji z API NLM. Na podstawie otrzymanych tokenów wyszukuje odpowiadające im deskryptory MeSH i zwraca 10 z nich, najczęściej się pojawiających.
-* ```MeshSession```: Klasa sesji zarządzająca całym procesem analizy. Wykorzystuje klasy ```TextParser``` i ```MeshDescriptor```. Odpowiada również za obsługę plików konfiguracyjnych, zapis danych do pliku txt oraz wygenerowanie i zapis wykresu.
-* ```MeshDescriptorsWindow```: Klasa definiująca okno główne graficznego interface'u użytkownika, obsługuje sygnały (np. naciśnięcie przycisku) oraz odpowiada za prezentację wyników w tabeli.
+## 2. Program architecture and class description
+The program structure is based on the following classes:
+* ```TextParser```: A class responsible for processing the input text into tokens. It handles punctuation removal, case normalization (converting to lowercase), stop-word removal, and splitting the text into "tokens" (keywords).
+* ```MeshDescriptor```: A class used for communication with the NLM API. Based on the received tokens, it searches for corresponding MeSH descriptors and returns the top 10 most frequent results.
+* ```MeshSession```: A session management class that oversees the entire analysis process. It utilizes the ```TextParser``` and ```MeshDescriptor``` classes. It is also responsible for handling configuration files, saving data to .txt files, and generating and saving the bar chart.
+* ```MeshDescriptorsWindow```: A class that defines the main window of the Graphical User Interface (GUI). It handles signals (e.g., button clicks) and is responsible for displaying the results in a table format.
 
-## 3. Instrukcja użytkowania
-### Instalacja i uruchomienie
-1. Pobranie repozytorium:
+## 3. User manual
+### Instalation and running
+1. Downloading files:
 ```
 git clone https://gitlab-stud.elka.pw.edu.pl/pkossako/mesh_descriptors.git
 cd mesh_descriptors
 ```
-2. Program wymaga interpretera Python w wersji co najmniej 3.14. Pakiety potrzebne do uruchomienia programu można pobrać za pomocą tradycyjnego ```pip``` bądź ```uv```.
+2. Program needs Python in version at least 3.14. The packages needed to run the program can be installed using either the standard ```pip``` or ```uv```.
 
 - ```pip```:
 
@@ -42,18 +43,32 @@ pip install -r requirements.txt
 ```
 - ```uv```:
 ```
-uv venv --python 3.14
 uv sync
 ```
-3. Uruchamianie:
+3. Running:
 
-Uruchomienie interface'u CLI:
+Running in terminal:
 ```
 python main.py
 ```
-Uruchomienie interface'u GUI:
+Running graphical interface:
 ```
 python main.py --gui
 ```
+### Settings
+In config.json user can specify location in which exported text files and charts will be saved:
+```
+{
+    "text_file_save_path": "{path to save exported text files}",
+    "chart_save_path": "{path to save exported charts}"
+}
+```
 
-## 4. Refleksje
+## 4. Reflections
+### Scope of work performed:
+- Efficient text parsing and tokenization were implemented.
+- Successful integration with the NLM API using the requests library was achieved.
+- Both graphical and command-line interfaces were designed and implemented.
+- Functionality for exporting results to text files and generating bar charts was added.
+- Unit tests were developed.
+- A configuration system based on a .json file was implemented.
